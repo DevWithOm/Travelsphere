@@ -1,0 +1,191 @@
+import os
+import json
+from dotenv import load_dotenv
+
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
+# Try to import google-genai; fall back gracefully if not installed
+try:
+    import google.generativeai as genai
+    if GEMINI_API_KEY:
+        genai.configure(api_key=GEMINI_API_KEY)
+        model = genai.GenerativeModel("gemini-2.0-flash")
+    else:
+        model = None
+except ImportError:
+    model = None
+
+
+def _clean_json_text(text: str) -> str:
+    """Strip markdown code fences from Gemini responses."""
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.split("\n", 1)[1]
+        text = text.rsplit("```", 1)[0].strip()
+    return text
+
+
+async def generate_itinerary(destination: str, days: int, interests: list, budget: float, currency: str = "USD") -> list:
+    """Generate a daily itinerary using Gemini API."""
+    if not model:
+        return [
+            {
+                "day": f"Day {i}",
+                "activities": [
+                    {
+                        "label": "Breakfast",
+                        "time_slot": "08:00 AM - 09:00 AM",
+                        "location": f"Local Cafe, {destination}",
+                        "description": "Start the day with a light local breakfast and review the day's roadmap."
+                    },
+                    {
+                        "label": "Morning Tour",
+                        "time_slot": "09:30 AM - 12:00 PM",
+                        "location": f"Central Historical District, {destination}",
+                        "description": f"Guided walking tour exploring {destination}'s history and main landmarks."
+                    },
+                    {
+                        "label": "Lunch",
+                        "time_slot": "12:30 PM - 01:30 PM",
+                        "location": "Avenue Bistro",
+                        "description": "Relaxed lunch featuring traditional regional cuisine."
+                    },
+                    {
+                        "label": "Afternoon Activity",
+                        "time_slot": "02:00 PM - 04:30 PM",
+                        "location": f"{interests[0] if interests else 'Cultural Museum'}",
+                        "description": f"Deep dive into {interests[0] if interests else 'local arts and culture'} through immersive exhibits."
+                    },
+                    {
+                        "label": "Dinner",
+                        "time_slot": "06:30 PM - 08:30 PM",
+                        "location": "Highly-rated Restaurant",
+                        "description": "Enjoy a curated multi-course dinner with local delicacies."
+                    },
+                    {
+                        "label": "Evening Leisure",
+                        "time_slot": "08:30 PM - 10:00 PM",
+                        "location": "City Center Public Square",
+                        "description": "Evening stroll and relaxation to take in the bustling night atmosphere."
+                    }
+                ]
+            }
+            for i in range(1, days + 1)
+        ]
+
+    prompt = (
+        f"Create a very detailed, step-by-step {days}-day timetable travel itinerary for {destination} with a budget of {budget} {currency}. "
+        f"Interests include: {', '.join(interests)}. "
+        f"Provide a COMPREHENSIVE daily roadmap for the whole day. You MUST include at least 6 to 8 detailed activities per day (e.g. Breakfast, Morning Activity, Lunch, Afternoon Activity, Dinner, Evening Leisure). "
+        f"Expand the itinerary to include step-by-step guidance on exactly where to go, what to visit, and what to do, with precise times and specific location names. "
+        f"Return ONLY a valid JSON object (no markdown, no code fences) containing an 'itinerary' array. "
+        f"Each item in the array must have these keys: "
+        f"'day' (string, e.g., 'Day 1'), "
+        f"'activities' (an array of activity objects). "
+        f"Each activity object must have these string keys: "
+        f"'time_slot' (e.g. '08:00 AM - 10:00 AM'), 'location' (specific place name), 'description' (detailed step-by-step instruction), and 'label' (e.g. 'Breakfast', 'Morning Tour', 'Lunch', 'Afternoon Activity', etc.)."
+    )
+
+    try:
+        response = await model.generate_content_async(prompt)
+        data = json.loads(_clean_json_text(response.text))
+        return data.get("itinerary", data) if isinstance(data, dict) else data
+    except Exception as e:
+        print(f"Gemini Error: {e}")
+        return [{
+            "day": "Day 1",
+            "activities": [
+                {
+                    "label": "Error",
+                    "time_slot": "",
+                    "location": "",
+                    "description": "AI generation failed. Please check your API key."
+                }
+            ]
+        }]
+
+
+async def generate_packing_list(destination: str, days: int) -> list:
+    """Generate packing suggestions using Gemini API."""
+    if not model:
+        return ["Passport", "Clothes", "Toothbrush", "Camera", "Charger", "Sunscreen"]
+
+    prompt = (
+        f"Provide a concise packing list for a {days}-day trip to {destination}. "
+        f"Return ONLY a valid JSON array of strings, no markdown."
+    )
+    try:
+        response = await model.generate_content_async(prompt)
+        return json.loads(_clean_json_text(response.text))
+    except Exception:
+        return ["Passport", "Clothes", "Toothbrush", "Camera"]
+
+
+async def generate_categorized_packing_list(destination: str, days: int, weather: str = "") -> dict:
+    """Generate categorized packing suggestions using Gemini API."""
+    if not model:
+        return {
+            "clothes": ["T-shirts", "Pants", "Jacket"],
+            "electronics": ["Phone", "Charger", "Power bank"],
+            "essentials": ["Toothbrush", "Toothpaste", "Sunscreen"],
+            "documents": ["Passport", "ID", "Tickets"]
+        }
+
+    weather_text = f" in {weather} weather" if weather else ""
+    prompt = (
+        f"Generate a travel packing list for a trip to {destination} for {days} days{weather_text}. "
+        f"Categorize items into:\n"
+        f"1. Clothes\n"
+        f"2. Electronics\n"
+        f"3. Travel Essentials\n"
+        f"4. Documents\n\n"
+        f"Return ONLY a valid JSON object (no markdown) with four keys: 'clothes', 'electronics', 'essentials', 'documents'."
+        f"Each key must map to a JSON array of strings."
+    )
+    try:
+        response = await model.generate_content_async(prompt)
+        return json.loads(_clean_json_text(response.text))
+    except Exception:
+        return {
+            "clothes": ["Error generating AI list"],
+            "electronics": [],
+            "essentials": [],
+            "documents": []
+        }
+
+
+
+async def recommend_destinations(preferences: list, budget: float, currency: str = "USD") -> list:
+    """Recommend destinations using Gemini API."""
+    if not model:
+        return ["Paris, France", "Kyoto, Japan", "Machu Picchu, Peru"]
+
+    prompt = (
+        f"Recommend 3 travel destinations for a budget of {budget} {currency} "
+        f"and these interests: {', '.join(preferences)}. "
+        f"Return ONLY a valid JSON array of strings, no markdown."
+    )
+    try:
+        response = await model.generate_content_async(prompt)
+        return json.loads(_clean_json_text(response.text))
+    except Exception:
+        return ["Paris", "Tokyo", "New York"]
+
+async def estimate_budget(destination: str, origin: str, days: int, currency: str = "USD") -> float:
+    """Estimate a realistic budget based on destination, origin, and duration."""
+    if not model:
+        return 1500.0
+
+    prompt = (
+        f"Estimate a realistic travel budget in {currency} for a {days}-day trip to {destination} originating from {origin}. "
+        f"Consider average flights, mid-range accommodation, daily food, and local transportation. "
+        f"Return ONLY a valid JSON object with a single key 'estimated_budget' containing a numeric value (no markdown)."
+    )
+    try:
+        response = await model.generate_content_async(prompt)
+        data = json.loads(_clean_json_text(response.text))
+        return float(data.get("estimated_budget", 1500.0))
+    except Exception:
+        return 1500.0

@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root,
+  [data-theme='vintage'] {
+    --vintage-paper: 244 236 216; /* #f4ecd8 */
+    --vintage-ink: 59 49 42;      /* #3b312a */
+    --vintage-leather: 139 90 43; /* #8b5a2b */
+    --vintage-brass: 181 166 66;  /* #b5a642 */
+    --vintage-accent: 200 75 49;  /* #c84b31 */
+    --vintage-sky: 129 155 160;   /* #819ba0 */
+  }
+
+  .dark[data-theme='vintage'],
+  .dark:root {
+    --vintage-paper: 28 25 23;    /* #1c1917 */
+    --vintage-ink: 244 236 216;   /* #f4ecd8 */
+    --vintage-leather: 212 163 115; /* Lighter leather */
+    --vintage-brass: 202 189 123;  
+    --vintage-accent: 236 109 84;  
+    --vintage-sky: 153 176 180;   
+  }
+
+  [data-theme='oceanic'] {
+    --vintage-paper: 240 249 255; 
+    --vintage-ink: 12 74 110;     
+    --vintage-leather: 3 105 161; 
+    --vintage-brass: 14 165 233;  
+    --vintage-accent: 220 38 38;  
+    --vintage-sky: 125 211 252;   
+  }
+  .dark[data-theme='oceanic'] {
+    --vintage-paper: 8 47 73; 
+    --vintage-ink: 240 249 255;     
+    --vintage-leather: 56 189 248; 
+    --vintage-brass: 2 132 199;  
+    --vintage-accent: 248 113 113;  
+    --vintage-sky: 14 116 144;   
+  }
+
+  [data-theme='emerald'] {
+    --vintage-paper: 240 253 244;
+    --vintage-ink: 20 83 45;
+    --vintage-leather: 22 101 52;
+    --vintage-brass: 132 204 22;
+    --vintage-accent: 217 119 6;
+    --vintage-sky: 134 239 172;
+  }
+  .dark[data-theme='emerald'] {
+    --vintage-paper: 5 46 22;
+    --vintage-ink: 240 253 244;
+    --vintage-leather: 74 222 128;
+    --vintage-brass: 34 197 94;
+    --vintage-accent: 251 191 36;
+    --vintage-sky: 21 128 61;
+  }
+
+  body {
+    @apply font-sans bg-vintage-paper text-vintage-ink selection:bg-vintage-sky selection:text-white bg-paper-texture overflow-x-hidden antialiased;
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif text-vintage-leather tracking-tight;
+    transition: color 0.4s ease;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgb(var(--vintage-paper));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--vintage-leather));
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--vintage-sky));
+  }
+}
+
+@layer components {
+  .vintage-card {
+    background-color: rgb(var(--vintage-paper) / 0.7);
+    @apply backdrop-blur-md border border-vintage-brass/30 rounded-lg shadow-[4px_4px_12px_rgba(0,0,0,0.1)] p-6 transition-all duration-300 hover:shadow-[4px_4px_16px_rgba(0,0,0,0.2)] hover:-translate-y-1 relative;
+  }
+  
+  .vintage-card::before {
+    content: '';
+    @apply absolute inset-0 border border-vintage-leather/20 m-2 rounded pointer-events-none;
+  }
+  
+  .vintage-button {
+    @apply px-6 py-2 bg-vintage-leather text-vintage-paper font-serif tracking-wide rounded border border-vintage-ink/20 shadow-sm hover:bg-vintage-ink hover:text-white transition-colors duration-300 relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-vintage-brass focus:ring-offset-2 focus:ring-offset-vintage-paper;
+  }
+
+  .vintage-input {
+    @apply w-full bg-vintage-paper border border-vintage-brass/40 rounded py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-vintage-leather/50 font-mono text-vintage-ink transition-all placeholder:text-vintage-ink/50;
+  }
+
+  /* Global form element styling to ensure readability across all themes */
+  input:not([type="checkbox"]):not([type="radio"]), 
+  select, 
+  textarea {
+    @apply bg-vintage-paper/40 border border-vintage-brass/40 text-vintage-ink focus:ring-2 focus:ring-vintage-leather/50 focus:border-vintage-leather transition-all;
+  }
+
+  input::placeholder, 
+  textarea::placeholder {
+    @apply text-vintage-ink/50;
+  }
+
+  /* Oceanic Specific Effects - Waterfall/Waves */
+  [data-theme='oceanic'] .oceanic-waterfall {
+    @apply absolute inset-0 pointer-events-none opacity-20 overflow-hidden;
+    background: linear-gradient(to bottom, transparent, rgb(var(--vintage-leather) / 0.1));
+  }
+
+  [data-theme='oceanic'] .water-drop {
+    @apply absolute bg-white/40 w-[1px] h-20;
+    animation: waterfall linear infinite;
+  }
+
+  @keyframes waterfall {
+    0% { transform: translateY(-100vh); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(100vh); opacity: 0; }
+  }
+
+  /* Lush Emerald Specific Effects - Floating Leaves */
+  [data-theme='emerald'] .emerald-floating {
+    @apply absolute inset-0 pointer-events-none opacity-10 overflow-hidden;
+  }
+
+  [data-theme='emerald'] .leaf {
+    @apply absolute bg-vintage-leather/30 w-4 h-4 rounded-full;
+    animation: float 10s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(30px, 50px) rotate(120deg); }
+    66% { transform: translate(-20px, 100px) rotate(240deg); }
+  }
+}

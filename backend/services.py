@@ -19,13 +19,33 @@ except ImportError:
 
 
 def _clean_json_text(text: str) -> str:
-    """Strip markdown code fences from Gemini responses."""
+    """Strip markdown code fences and conversational padding from Gemini responses."""
     text = text.strip()
-    if text.startswith("```"):
-        text = text.split("\n", 1)[1]
-        text = text.rsplit("```", 1)[0].strip()
+    
+    start_obj = text.find('{')
+    start_arr = text.find('[')
+    end_obj = text.rfind('}')
+    end_arr = text.rfind(']')
+    
+    start = -1
+    if start_obj != -1 and start_arr != -1:
+        start = min(start_obj, start_arr)
+    elif start_obj != -1:
+        start = start_obj
+    elif start_arr != -1:
+        start = start_arr
+        
+    end = -1
+    if end_obj != -1 and end_arr != -1:
+        end = max(end_obj, end_arr)
+    elif end_obj != -1:
+        end = end_obj
+    elif end_arr != -1:
+        end = end_arr
+        
+    if start != -1 and end != -1 and start < end:
+        return text[start:end+1]
     return text
-
 
 async def generate_itinerary(destination: str, days: int, interests: list, budget: float, currency: str = "USD") -> list:
     """Generate a daily itinerary using Gemini API."""
@@ -146,10 +166,25 @@ async def generate_categorized_packing_list(destination: str, days: int, weather
     )
     try:
         response = await model.generate_content_async(prompt)
-        return json.loads(_clean_json_text(response.text))
-    except Exception:
+        text = response.text
+        try:
+            parsed = json.loads(_clean_json_text(text))
+            # Enforce lowercase keys in case the AI capitalized them based on the numbered list
+            if isinstance(parsed, dict):
+                parsed = {k.lower(): v for k, v in parsed.items()}
+            return parsed
+        except Exception as json_e:
+            print(f"JSON Parsing Error in Packing List: {json_e}\nRaw Text: {text}")
+            return {
+                "clothes": [f"Parsing error: {json_e}"],
+                "electronics": ["Raw output:", text[:100]],
+                "essentials": [],
+                "documents": []
+            }
+    except Exception as e:
+        print(f"Gemini API Error: {e}")
         return {
-            "clothes": ["Error generating AI list"],
+            "clothes": [f"API Error: {str(e)}"],
             "electronics": [],
             "essentials": [],
             "documents": []

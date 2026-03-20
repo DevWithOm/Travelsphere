@@ -9,13 +9,22 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 # Try to import google-genai; fall back gracefully if not installed
 try:
     import google.generativeai as genai
-    if GEMINI_API_KEY:
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-2.0-flash")
-    else:
-        model = None
+    HAS_GENAI = True
 except ImportError:
-    model = None
+    HAS_GENAI = False
+
+def get_model(api_key: str = None):
+    if not HAS_GENAI:
+        return None
+    key = api_key or GEMINI_API_KEY
+    if not key:
+        return None
+    try:
+        genai.configure(api_key=key)
+        # Using gemini-1.5-flash for maximum stability
+        return genai.GenerativeModel("gemini-1.5-flash")
+    except Exception:
+        return None
 
 
 def _clean_json_text(text: str) -> str:
@@ -47,8 +56,9 @@ def _clean_json_text(text: str) -> str:
         return text[start:end+1]
     return text
 
-async def generate_itinerary(destination: str, days: int, interests: list, budget: float, currency: str = "USD") -> list:
+async def generate_itinerary(destination: str, days: int, interests: list, budget: float, currency: str = "USD", api_key: str = None) -> list:
     """Generate a daily itinerary using Gemini API."""
+    model = get_model(api_key)
     if not model:
         return [
             {
@@ -127,8 +137,9 @@ async def generate_itinerary(destination: str, days: int, interests: list, budge
         }]
 
 
-async def generate_packing_list(destination: str, days: int) -> list:
+async def generate_packing_list(destination: str, days: int, api_key: str = None) -> list:
     """Generate packing suggestions using Gemini API."""
+    model = get_model(api_key)
     if not model:
         return ["Passport", "Clothes", "Toothbrush", "Camera", "Charger", "Sunscreen"]
 
@@ -143,8 +154,9 @@ async def generate_packing_list(destination: str, days: int) -> list:
         return ["Passport", "Clothes", "Toothbrush", "Camera"]
 
 
-async def generate_categorized_packing_list(destination: str, days: int, weather: str = "") -> dict:
+async def generate_categorized_packing_list(destination: str, days: int, weather: str = "", api_key: str = None) -> dict:
     """Generate categorized packing suggestions using Gemini API."""
+    model = get_model(api_key)
     if not model:
         return {
             "clothes": ["T-shirts", "Pants", "Jacket"],
@@ -192,8 +204,9 @@ async def generate_categorized_packing_list(destination: str, days: int, weather
 
 
 
-async def recommend_destinations(preferences: list, budget: float, currency: str = "USD") -> list:
+async def recommend_destinations(preferences: list, budget: float, currency: str = "USD", api_key: str = None) -> list:
     """Recommend destinations using Gemini API."""
+    model = get_model(api_key)
     if not model:
         return ["Paris, France", "Kyoto, Japan", "Machu Picchu, Peru"]
 
@@ -208,8 +221,9 @@ async def recommend_destinations(preferences: list, budget: float, currency: str
     except Exception:
         return ["Paris", "Tokyo", "New York"]
 
-async def estimate_budget(destination: str, origin: str, days: int, currency: str = "USD") -> float:
+async def estimate_budget(destination: str, origin: str, days: int, currency: str = "USD", api_key: str = None) -> float:
     """Estimate a realistic budget based on destination, origin, and duration."""
+    model = get_model(api_key)
     if not model:
         return 1500.0
 

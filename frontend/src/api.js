@@ -9,6 +9,14 @@ const api = axios.create({
   timeout: 30000, // 30s timeout for AI-generated responses
 });
 
+api.interceptors.request.use((config) => {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (apiKey) {
+    config.headers['X-Gemini-Api-Key'] = apiKey;
+  }
+  return config;
+});
+
 // ─── Trip APIs ─────────────────────────────────────────
 export const planTrip = (tripData) =>
   api.post('/plan-trip', tripData);

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from bson import ObjectId
 import uuid
@@ -34,18 +34,20 @@ def health_check():
 mock_db = {}
 
 @app.post("/plan-trip")
-async def plan_trip(request: TripRequest):
+async def plan_trip(request: TripRequest, x_gemini_api_key: str = Header(None)):
     itinerary = await services.generate_itinerary(
         destination=request.destination,
         days=request.days,
         interests=request.interests,
         budget=request.budget,
-        currency=request.currency
+        currency=request.currency,
+        api_key=x_gemini_api_key
     )
 
     packing_list = await services.generate_packing_list(
         destination=request.destination,
-        days=request.days
+        days=request.days,
+        api_key=x_gemini_api_key
     )
 
     trip_data = {
@@ -127,17 +129,18 @@ async def add_expense(request: ExpenseRequest):
     raise HTTPException(status_code=404, detail="Trip not found")
 
 @app.post("/recommend-destination")
-async def get_recommendations(request: DestinationRequest):
-    destinations = await services.recommend_destinations(request.preferences, request.budget, request.currency)
+async def get_recommendations(request: DestinationRequest, x_gemini_api_key: str = Header(None)):
+    destinations = await services.recommend_destinations(request.preferences, request.budget, request.currency, api_key=x_gemini_api_key)
     return {"recommendations": destinations}
 
 @app.post("/estimate-budget")
-async def estimate_budget_route(request: BudgetEstimateRequest):
+async def estimate_budget_route(request: BudgetEstimateRequest, x_gemini_api_key: str = Header(None)):
     estimated_amount = await services.estimate_budget(
         destination=request.destination,
         origin=request.origin,
         days=request.days,
-        currency=request.currency
+        currency=request.currency,
+        api_key=x_gemini_api_key
     )
     return {"estimated_budget": estimated_amount}
 
@@ -185,7 +188,7 @@ async def get_budget_summary(id: str):
     }
 
 @app.get("/packing-list")
-async def get_packing_list(destination: str, days: int, weather: str = ""):
-    items = await services.generate_categorized_packing_list(destination, days, weather)
+async def get_packing_list(destination: str, days: int, weather: str = "", x_gemini_api_key: str = Header(None)):
+    items = await services.generate_categorized_packing_list(destination, days, weather, api_key=x_gemini_api_key)
     return items
 

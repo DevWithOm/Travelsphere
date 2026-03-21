@@ -10,9 +10,9 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  const apiKey = import.meta.env.VITE_AI_API_KEY;
   if (apiKey) {
-    config.headers['X-Gemini-Api-Key'] = apiKey;
+    config.headers['X-AI-Api-Key'] = apiKey;
   }
   return config;
 });

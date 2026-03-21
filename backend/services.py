@@ -4,25 +4,48 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-
-# Try to import google-genai; fall back gracefully if not installed
+# OpenRouter Drop-in Replacement via OpenAI SDK
 try:
-    import google.generativeai as genai
-    HAS_GENAI = True
+    from openai import AsyncOpenAI
+    HAS_OPENAI = True
 except ImportError:
-    HAS_GENAI = False
+    HAS_OPENAI = False
+
+class UniversalFallbackModel:
+    def __init__(self, key: str):
+        self.model = "meta-llama/llama-3.2-3b-instruct:free" # default
+        base_url = "https://openrouter.ai/api/v1"
+        
+        if key.startswith("gsk_"):
+            base_url = "https://api.groq.com/openai/v1"
+            self.model = "llama-3.3-70b-versatile"
+        elif key.startswith("sk-or-"):
+            base_url = "https://openrouter.ai/api/v1"
+            self.model = "meta-llama/llama-3.2-3b-instruct:free"
+        
+        self.client = AsyncOpenAI(
+            base_url=base_url,
+            api_key=key,
+            default_headers={"HTTP-Referer": "https://travelsphere.app", "X-Title": "TravelSphere"}
+        )
+    
+    async def generate_content_async(self, prompt: str):
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        class ResponseStub:
+            text = response.choices[0].message.content
+        return ResponseStub()
 
 def get_model(api_key: str = None):
-    if not HAS_GENAI:
+    if not HAS_OPENAI:
         return None
-    key = api_key or GEMINI_API_KEY
+    key = api_key or os.getenv("OPENROUTER_API_KEY", "")
     if not key:
         return None
     try:
-        genai.configure(api_key=key)
-        # Using gemini-1.5-flash for maximum stability
-        return genai.GenerativeModel("gemini-1.5-flash")
+        return UniversalFallbackModel(key)
     except Exception:
         return None
 

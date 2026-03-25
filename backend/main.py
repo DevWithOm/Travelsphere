@@ -30,8 +30,10 @@ def read_root():
 def health_check():
     return {"status": "ok", "theme": "steampunk/vintage adventure"}
 
+from typing import Any, Dict
+
 # In-memory fallback if MongoDB is not running
-mock_db = {}
+mock_db: Dict[str, Any] = {}
 
 @app.post("/plan-trip")
 async def plan_trip(request: TripRequest, x_openrouter_api_key: str = Header(None)):
@@ -56,6 +58,8 @@ async def plan_trip(request: TripRequest, x_openrouter_api_key: str = Header(Non
         "currency": request.currency,
         "days": request.days,
         "interests": request.interests,
+        "travelers": request.travelers,
+        "split_payment": request.split_payment,
         "itinerary": itinerary,
         "packing_list": packing_list,
         "expenses": []
@@ -123,8 +127,11 @@ async def add_expense(request: ExpenseRequest):
         pass
 
     if request.trip_id in mock_db:
-        mock_db[request.trip_id]["expenses"].append(expense_data)
-        return mock_db[request.trip_id]
+        trip_doc = mock_db[request.trip_id]
+        if "expenses" not in trip_doc or not isinstance(trip_doc["expenses"], list):
+            trip_doc["expenses"] = []
+        trip_doc["expenses"].append(expense_data)
+        return trip_doc
 
     raise HTTPException(status_code=404, detail="Trip not found")
 
@@ -151,12 +158,12 @@ async def get_rule_based_recommendations(request: RuleBasedDestinationRequest):
 
 @app.get("/budget-summary/{id}")
 async def get_budget_summary(id: str):
-    trip = None
+    trip: Dict[str, Any] | None = None
     try:
         if ObjectId.is_valid(id):
             doc = await trip_collection.find_one({"_id": ObjectId(id)})
             if doc:
-                trip = trip_helper(doc)
+                trip = dict(trip_helper(doc))
     except Exception:
         pass
 
@@ -166,22 +173,25 @@ async def get_budget_summary(id: str):
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
 
-    expenses = trip.get("expenses", [])
-    total_spent = sum(e.get("amount", 0) for e in expenses)
-    remaining = trip.get("budget", 0) - total_spent
+    expenses: list = trip.get("expenses", []) or []
+    total_spent: float = float(sum(float(e.get("amount", 0)) for e in expenses if isinstance(e, dict)))
+    remaining: float = float(trip.get("budget", 0)) - total_spent
 
     # Per-category breakdown
-    category_breakdown = {}
+    category_breakdown: Dict[str, float] = {}
     for e in expenses:
-        cat = e.get("category", "Other")
-        category_breakdown[cat] = category_breakdown.get(cat, 0) + e.get("amount", 0)
+        if isinstance(e, dict):
+            cat = str(e.get("category", "Other"))
+            category_breakdown[cat] = category_breakdown.get(cat, 0.0) + float(e.get("amount", 0))
+
+    trip_data: Dict[str, Any] = trip if isinstance(trip, dict) else {}
 
     return {
         "trip_id": id,
-        "destination": trip.get("destination", ""),
-        "total_budget": trip.get("budget", 0),
-        "total_spent": round(total_spent, 2),
-        "remaining": round(remaining, 2),
+        "destination": str(trip_data.get("destination", "")),
+        "total_budget": float(trip_data.get("budget", 0)),
+        "total_spent": float(f"{total_spent:.2f}"),
+        "remaining": float(f"{remaining:.2f}"),
         "is_over_budget": remaining < 0,
         "expense_count": len(expenses),
         "category_breakdown": category_breakdown

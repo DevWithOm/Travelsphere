@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Palmtree, DollarSign, Search, MapPin } from 'lucide-react';
 import { getRuleBasedRecommendations } from '../api';
+import { AnimatedSection, StaggeredList, PageTransition, ParticleField } from '../components/AnimatedUI';
 
 export default function Recommendations() {
     const [formData, setFormData] = useState({
@@ -31,10 +32,14 @@ export default function Recommendations() {
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 max-w-5xl mx-auto">
+        <PageTransition>
+        <div className="space-y-8 max-w-5xl mx-auto relative">
+            <ParticleField count={15} />
+            <AnimatedSection animation="fadeUp">
             <h1 className="text-4xl font-bold font-serif text-vintage-leather tracking-tight border-b-2 border-vintage-brass/30 pb-4 flex items-center">
                 <Palmtree className="mr-3 w-8 h-8" /> Destination Oracle
             </h1>
+            </AnimatedSection>
 
             <p className="text-lg text-vintage-ink/80 font-serif leading-relaxed">
                 Unsure where your budget and passions might lead you? Consult our proprietary telegraphic oracle. Input your financial constraints and primary interest to reveal curated locales.
@@ -111,7 +116,8 @@ export default function Recommendations() {
             )}
 
             {recommendations && (
-                <div className="space-y-6 mt-8 animate-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-6 mt-8">
+                    <AnimatedSection animation="fadeUp">
                     <h2 className="text-2xl font-bold font-serif text-vintage-ink flex items-center">
                         <MapPin className="mr-2 w-6 h-6 text-vintage-leather" /> Discovered Locales
                     </h2>
@@ -124,9 +130,9 @@ export default function Recommendations() {
                     {recommendations.recommended_destinations.length === 0 ? (
                         <p className="text-vintage-ink/70 italic font-serif">Alas, no destinations match these specific criteria.</p>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <StaggeredList className="grid grid-cols-1 md:grid-cols-2 gap-8" staggerMs={150}>
                             {recommendations.recommended_destinations.map((dest, idx) => (
-                                <div key={idx} className="vintage-card p-0 overflow-hidden flex flex-col hover:shadow-xl transition-shadow group">
+                                <div key={idx} className="vintage-card p-0 overflow-hidden flex flex-col hover:shadow-xl transition-all group card-3d-hover">
                                     <div className="h-48 overflow-hidden relative">
                                         <img 
                                             src={dest.image_url || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&q=80&w=800'} 
@@ -164,10 +170,12 @@ export default function Recommendations() {
                                     </div>
                                 </div>
                             ))}
-                        </div>
+                        </StaggeredList>
                     )}
+                </AnimatedSection>
                 </div>
             )}
         </div>
+        </PageTransition>
     );
 }

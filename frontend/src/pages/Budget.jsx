@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Wallet, Plus, Tag, AlertCircle, PieChart as PieChartIcon } from 'lucide-react';
+import { Wallet, Plus, Tag, AlertCircle, PieChart as PieChartIcon, Users, Link as LinkIcon, Check } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { getTrip, addExpense } from '../api';
+import { AnimatedSection, AnimatedCounter, StaggeredList, PageTransition, Shimmer } from '../components/AnimatedUI';
 
 export default function Budget() {
     const [searchParams] = useSearchParams();
@@ -14,6 +15,14 @@ export default function Budget() {
     const [error, setError] = useState(null);
     const [expenseForm, setExpenseForm] = useState({ category: 'Food', amount: '', description: '' });
     const [submitting, setSubmitting] = useState(false);
+    const [linkCopied, setLinkCopied] = useState(false);
+
+    const handleCopyLink = () => {
+        const paymentLink = `${window.location.origin}/pay/${tripId}?split=true`;
+        navigator.clipboard.writeText(paymentLink);
+        setLinkCopied(true);
+        setTimeout(() => setLinkCopied(false), 2000);
+    };
 
     const categories = ['Food', 'Accommodation', 'Transport', 'Activities', 'Souvenirs', 'Other'];
     const CATEGORY_COLORS = {
@@ -93,10 +102,13 @@ export default function Budget() {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] text-vintage-leather">
-                <div className="w-12 h-12 border-4 border-vintage-brass/30 border-t-vintage-leather rounded-full animate-spin mb-4"></div>
-                <p className="font-mono text-lg animate-pulse">Consulting the ledgers...</p>
-            </div>
+            <PageTransition>
+                <div className="max-w-6xl mx-auto space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {[1,2,3].map(i => <div key={i} className="vintage-card text-center"><Shimmer height="16px" width="100px" className="mx-auto mb-2" /><Shimmer height="40px" width="180px" className="mx-auto" /></div>)}
+                    </div>
+                </div>
+            </PageTransition>
         );
     }
 
@@ -135,32 +147,76 @@ export default function Budget() {
 
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 animate-in slide-in-from-bottom-4 duration-700 pb-12">
+        <PageTransition>
+        <div className="max-w-6xl mx-auto space-y-8 pb-12">
 
             {/* Dashboard Header - Analytics Metrics */}
+            <AnimatedSection animation="fadeUp">
+            
+            {trip.split_payment && trip.travelers > 1 && (
+                <div className="mb-6 p-4 bg-vintage-sky/10 border border-vintage-sky/30 rounded-lg flex items-center justify-between shadow-sm card-3d-hover">
+                    <div className="flex items-center">
+                        <Users className="w-6 h-6 text-vintage-sky mr-3" />
+                        <div>
+                            <p className="font-serif font-bold text-vintage-ink text-lg">Split Payment Active ({trip.travelers} Travelers)</p>
+                            <p className="text-sm font-mono text-vintage-sky">Costs are being divided equally among your expedition members.</p>
+                        </div>
+                    </div>
+                    <div className="text-right flex flex-col items-end">
+                        <p className="text-xs tracking-widest uppercase text-vintage-ink/70">Your Personal Share Required</p>
+                        <p className={`font-mono font-bold text-xl mb-2 ${isOverBudget ? 'text-red-600' : 'text-vintage-sky'}`}>
+                            {currencyFormat.format(trip.budget / trip.travelers)}
+                        </p>
+                        <button 
+                            onClick={handleCopyLink}
+                            className={`flex items-center text-[10px] uppercase font-bold tracking-widest px-3 py-1.5 rounded transition-all shadow-sm ${linkCopied ? 'bg-emerald-500 text-white' : 'bg-vintage-ink text-white hover:bg-vintage-leather hover:-translate-y-[1px]'}`}
+                        >
+                            {linkCopied ? (
+                                <><Check className="w-3 h-3 mr-1.5" /> Link Copied</>
+                            ) : (
+                                <><LinkIcon className="w-3 h-3 mr-1.5" /> Share Payment Link</>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="vintage-card flex flex-col justify-center text-center transform hover:scale-105 transition-transform duration-300">
-                    <span className="font-mono text-xs tracking-widest uppercase opacity-70 mb-1">Total Treasury</span>
-                    <span className="text-4xl font-serif font-bold text-vintage-ink tracking-tight">{currencyFormat.format(trip.budget)}</span>
-                    <div className="mt-2 text-xs font-mono text-vintage-ink/60">Allocated Budget</div>
+                <div className="vintage-card flex flex-col justify-center text-center card-3d-hover hover-glow relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-vintage-sky/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                    <span className="font-mono text-xs tracking-widest uppercase opacity-70 mb-1">Shared Travel Wallet</span>
+                    <span className="text-4xl font-serif font-bold text-vintage-ink tracking-tight">
+                        <AnimatedCounter value={trip.budget} prefix={trip.currency === 'INR' ? '₹' : '$'} />
+                    </span>
+                    <div className="mt-2 text-xs font-mono text-vintage-ink/60">
+                        {trip.split_payment && trip.travelers > 1 ? `Group Allocated Wallet (${currencyFormat.format(trip.budget / trip.travelers)} each)` : 'Allocated Budget'}
+                    </div>
                 </div>
 
-                <div className="vintage-card flex flex-col justify-center text-center transform hover:scale-105 transition-transform duration-300 bg-vintage-brass/5">
+                <div className="vintage-card flex flex-col justify-center text-center card-3d-hover hover-glow bg-vintage-brass/5">
                     <span className="font-mono text-xs tracking-widest uppercase opacity-70 mb-1">Estimated Cost</span>
-                    <span className="text-4xl font-serif font-bold text-vintage-leather tracking-tight">{currencyFormat.format(totalSpent)}</span>
-                    <div className="mt-2 text-xs font-mono text-vintage-ink/60">Total Disbursed</div>
+                    <span className="text-4xl font-serif font-bold text-vintage-leather tracking-tight">
+                        <AnimatedCounter value={totalSpent} prefix={trip.currency === 'INR' ? '₹' : '$'} />
+                    </span>
+                    <div className="mt-2 text-xs font-mono text-vintage-ink/60">
+                        {trip.split_payment && trip.travelers > 1 ? `Group Disbursed (${currencyFormat.format(totalSpent / trip.travelers)} each)` : 'Total Disbursed'}
+                    </div>
                 </div>
 
-                <div className={`vintage-card flex flex-col justify-center text-center transform hover:scale-105 transition-transform duration-300 ${isOverBudget ? 'bg-red-50 border-red-200 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'bg-emerald-50 border-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.05)]'}`}>
+                <div className={`vintage-card flex flex-col justify-center text-center card-3d-hover hover-glow ${isOverBudget ? 'bg-red-50 border-red-200 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'bg-emerald-50 border-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.05)]'}`}>
                     <span className="font-mono text-xs tracking-widest uppercase opacity-70 mb-1">Remaining Budget</span>
                     <span className={`text-4xl font-serif font-bold tracking-tight ${isOverBudget ? 'text-red-700' : 'text-emerald-700'}`}>
-                        {currencyFormat.format(remaining)}
+                        <AnimatedCounter value={remaining} prefix={trip.currency === 'INR' ? '₹' : '$'} />
                     </span>
-                    <div className={`mt-2 text-xs font-mono ${isOverBudget ? 'text-red-600/70' : 'text-emerald-700/70'}`}>
-                       {isOverBudget ? 'Exceeding Limits' : 'Available Funds'}
+                    <div className={`mt-2 text-xs font-mono flex flex-col ${isOverBudget ? 'text-red-600/70' : 'text-emerald-700/70'}`}>
+                       <span>{isOverBudget ? 'Exceeding Limits' : 'Available Funds'}</span>
+                       {trip.split_payment && trip.travelers > 1 && (
+                           <span className="mt-0.5 font-bold">({currencyFormat.format(remaining / trip.travelers)} per person)</span>
+                       )}
                     </div>
                 </div>
             </div>
+            </AnimatedSection>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Ledger entry form */}
@@ -318,6 +374,7 @@ export default function Budget() {
             </div>
 
         </div>
+        </PageTransition>
     );
 }
 

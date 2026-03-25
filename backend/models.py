@@ -12,6 +12,8 @@ class TripRequest(BaseModel):
     currency: str = "USD"
     days: int
     interests: List[str]
+    travelers: int = 1
+    split_payment: bool = False
 
 class Expense(BaseModel):
     category: str
@@ -25,6 +27,8 @@ class TripResponse(BaseModel):
     currency: str = "USD"
     days: int
     interests: List[str]
+    travelers: int = 1
+    split_payment: bool = False
     itinerary: List[Any] = Field(default_factory=list)
     packing_list: List[str] = Field(default_factory=list)
     expenses: List[Expense] = Field(default_factory=list)
@@ -86,6 +90,8 @@ class TripDB(BaseModel):
     budget: float
     days: int
     interests: List[str] = Field(default_factory=list)
+    travelers: int = 1
+    split_payment: bool = False
     generated_itinerary: List[Any] = Field(default_factory=list)
     expenses: List[ExpenseDB] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

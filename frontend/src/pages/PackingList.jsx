@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Sparkles, Umbrella, Shield, MonitorSmartphone, Shirt } from 'lucide-react';
 import { getAIPackingList } from '../api';
+import { AnimatedSection, StaggeredList, PageTransition } from '../components/AnimatedUI';
 
 export default function PackingList() {
     const [formData, setFormData] = useState({ destination: '', days: 1, weather: 'sunny' });
@@ -25,7 +26,7 @@ export default function PackingList() {
     };
 
     const CategoryCard = ({ title, items, icon: Icon, colorClass }) => (
-        <div className="vintage-card bg-white/60">
+        <div className="vintage-card bg-white/60 card-3d-hover hover-glow">
             <h3 className={`text-lg font-serif font-bold mb-4 flex items-center border-b pb-2 ${colorClass}`}>
                 <Icon className="w-5 h-5 mr-2" /> {title}
             </h3>
@@ -45,13 +46,16 @@ export default function PackingList() {
     );
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 animate-in slide-in-from-bottom-4 duration-700 pb-12">
+        <PageTransition>
+        <div className="max-w-6xl mx-auto space-y-8 pb-12">
+            <AnimatedSection animation="fadeUp">
             <div className="text-center max-w-2xl mx-auto mb-10">
                 <h1 className="text-4xl font-serif font-bold text-vintage-ink mb-4">AI Packing List Generator</h1>
                 <p className="text-lg text-vintage-leather/80 font-mono">
                     Ensure your trunk is optimally packed for any expedition. Let our AI curator build a bespoke list based on your plans.
                 </p>
             </div>
+            </AnimatedSection>
 
             <div className="vintage-card max-w-3xl mx-auto bg-gradient-to-br from-white/80 to-vintage-brass/10 mb-12">
                 <form onSubmit={handleGenerate} className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -108,13 +112,14 @@ export default function PackingList() {
             </div>
 
             {packingList && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in duration-500">
+                <StaggeredList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" staggerMs={150}>
                     <CategoryCard title="Clothes" items={packingList.clothes} icon={Shirt} colorClass="text-indigo-700 border-indigo-200" />
                     <CategoryCard title="Electronics" items={packingList.electronics} icon={MonitorSmartphone} colorClass="text-emerald-700 border-emerald-200" />
                     <CategoryCard title="Essentials" items={packingList.essentials} icon={Umbrella} colorClass="text-amber-700 border-amber-200" />
                     <CategoryCard title="Documents" items={packingList.documents} icon={Shield} colorClass="text-rose-700 border-rose-200" />
-                </div>
+                </StaggeredList>
             )}
         </div>
+        </PageTransition>
     );
 }

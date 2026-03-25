@@ -18,12 +18,12 @@ export default function Layout() {
     return (
         <div className="min-h-screen relative flex flex-col font-sans text-vintage-ink">
             {/* Vintage Header */}
-            <header className="border-b-2 border-vintage-brass/40 bg-vintage-paper shadow-md sticky top-0 z-50">
+            <header className="border-b-2 border-vintage-brass/40 bg-vintage-paper/95 backdrop-blur-md shadow-md sticky top-0 z-50 header-glass">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-20 items-center">
 
                         <div className="flex items-center space-x-3">
-                            <div className="p-2 border border-vintage-leather/30 rounded-full bg-white/70 shadow-sm">
+                            <div className="p-2 border border-vintage-leather/30 rounded-full bg-white/70 shadow-sm logo-spin-hover">
                                 <Plane className="w-6 h-6 text-vintage-accent transform -rotate-45" />
                             </div>
                             <div>
@@ -37,7 +37,7 @@ export default function Layout() {
                         </div>
 
                         <nav className="flex space-x-1 md:space-x-4">
-                            {navItems.map((item) => {
+                            {navItems.map((item, index) => {
                                 const isActive = location.pathname === item.path ||
                                     (item.path !== '/plan' && location.pathname.startsWith(item.path));
 
@@ -48,10 +48,11 @@ export default function Layout() {
                                     <Link
                                         key={item.name}
                                         to={targetPath}
-                                        className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-all duration-300 ${isActive
-                                            ? 'bg-vintage-leather text-vintage-paper shadow-inner border border-vintage-ink/20'
+                                        className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-all duration-300 nav-item-hover ${isActive
+                                            ? 'bg-vintage-leather text-vintage-paper shadow-inner border border-vintage-ink/20 nav-active-glow'
                                             : 'text-vintage-leather/80 hover:bg-vintage-ink/10 hover:text-vintage-ink'
                                             }`}
+                                        style={{ animationDelay: `${index * 50}ms` }}
                                     >
                                         {item.icon}
                                         <span className="font-serif font-medium hidden sm:block">{item.name}</span>

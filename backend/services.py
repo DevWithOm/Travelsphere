@@ -91,37 +91,55 @@ async def generate_itinerary(destination: str, days: int, interests: list, budge
                         "label": "Breakfast",
                         "time_slot": "08:00 AM - 09:00 AM",
                         "location": f"Local Cafe, {destination}",
-                        "description": "Start the day with a light local breakfast and review the day's roadmap."
+                        "description": "Start the day with a light local breakfast and review the day's roadmap.",
+                        "reviews_summary": "4.5 stars - highly recommended by locals.",
+                        "distance_to_next": "0.5 miles",
+                        "travel_recommendation": "A short 10-minute walk."
                     },
                     {
                         "label": "Morning Tour",
                         "time_slot": "09:30 AM - 12:00 PM",
                         "location": f"Central Historical District, {destination}",
-                        "description": f"Guided walking tour exploring {destination}'s history and main landmarks."
+                        "description": f"Guided walking tour exploring {destination}'s history and main landmarks.",
+                        "reviews_summary": "4.8 stars - a must-see historical site.",
+                        "distance_to_next": "2.0 miles",
+                        "travel_recommendation": "Take a local taxi or the downtown bus line."
                     },
                     {
                         "label": "Lunch",
                         "time_slot": "12:30 PM - 01:30 PM",
                         "location": "Avenue Bistro",
-                        "description": "Relaxed lunch featuring traditional regional cuisine."
+                        "description": "Relaxed lunch featuring traditional regional cuisine.",
+                        "reviews_summary": "4.3 stars - excellent ambiance and food.",
+                        "distance_to_next": "1.5 miles",
+                        "travel_recommendation": "A pleasant stroll through the city center."
                     },
                     {
                         "label": "Afternoon Activity",
                         "time_slot": "02:00 PM - 04:30 PM",
                         "location": f"{interests[0] if interests else 'Cultural Museum'}",
-                        "description": f"Deep dive into {interests[0] if interests else 'local arts and culture'} through immersive exhibits."
+                        "description": f"Deep dive into {interests[0] if interests else 'local arts and culture'} through immersive exhibits.",
+                        "reviews_summary": "4.7 stars - captivating exhibits.",
+                        "distance_to_next": "3.0 miles",
+                        "travel_recommendation": "Take the metro to the dining district."
                     },
                     {
                         "label": "Dinner",
                         "time_slot": "06:30 PM - 08:30 PM",
                         "location": "Highly-rated Restaurant",
-                        "description": "Enjoy a curated multi-course dinner with local delicacies."
+                        "description": "Enjoy a curated multi-course dinner with local delicacies.",
+                        "reviews_summary": "4.9 stars - fine dining experience.",
+                        "distance_to_next": "1.0 miles",
+                        "travel_recommendation": "Walk back towards the center."
                     },
                     {
                         "label": "Evening Leisure",
                         "time_slot": "08:30 PM - 10:00 PM",
                         "location": "City Center Public Square",
-                        "description": "Evening stroll and relaxation to take in the bustling night atmosphere."
+                        "description": "Evening stroll and relaxation to take in the bustling night atmosphere.",
+                        "reviews_summary": "4.6 stars - great for people-watching.",
+                        "distance_to_next": "N/A",
+                        "travel_recommendation": "Return to your accommodation."
                     }
                 ]
             }
@@ -138,7 +156,13 @@ async def generate_itinerary(destination: str, days: int, interests: list, budge
         f"'day' (string, e.g., 'Day 1'), "
         f"'activities' (an array of activity objects). "
         f"Each activity object must have these string keys: "
-        f"'time_slot' (e.g. '08:00 AM - 10:00 AM'), 'location' (specific place name), 'description' (detailed step-by-step instruction), and 'label' (e.g. 'Breakfast', 'Morning Tour', 'Lunch', 'Afternoon Activity', etc.)."
+        f"'time_slot' (e.g. '08:00 AM - 10:00 AM'), "
+        f"'location' (specific place name), "
+        f"'description' (detailed step-by-step instruction), "
+        f"'label' (e.g. 'Breakfast', 'Morning Tour'), "
+        f"'reviews_summary' (a compelling short summary of reviews/ratings, e.g., '4.8 stars - Famous for its vintage ambiance.'), "
+        f"'distance_to_next' (distance to next location, e.g. '1.2 km' or 'N/A' if last activity), and "
+        f"'travel_recommendation' (e.g. 'Take a 15-minute scenic walk' or 'Use the Metro')."
     )
 
     try:
@@ -154,7 +178,10 @@ async def generate_itinerary(destination: str, days: int, interests: list, budge
                     "label": "Error",
                     "time_slot": "",
                     "location": "",
-                    "description": "AI generation failed. Please check your API key."
+                    "description": "AI generation failed. Please check your API key.",
+                    "reviews_summary": "N/A",
+                    "distance_to_next": "N/A",
+                    "travel_recommendation": "N/A"
                 }
             ]
         }]

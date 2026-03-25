@@ -88,7 +88,7 @@ export default function Dashboard() {
                             <Link 
                                 key={trip.id || trip._id} 
                                 to={`/itinerary?id=${trip.id || trip._id}`}
-                                className="vintage-card hover:scale-[1.03] transition-all duration-500 cursor-pointer group hover-glow card-3d-hover"
+                                className="block h-full flex flex-col vintage-card hover:scale-[1.03] transition-all duration-500 cursor-pointer group hover-glow card-3d-hover"
                             >
                                 <h2 className="text-2xl font-bold font-serif text-vintage-ink mb-2 group-hover:text-vintage-accent transition-colors">
                                     {trip.destination}
@@ -97,7 +97,7 @@ export default function Dashboard() {
                                     <p className="flex items-center"><Calendar className="w-4 h-4 mr-2" /> {trip.days} Days</p>
                                     <p className="flex items-center"><DollarSign className="w-4 h-4 mr-2" /> {new Intl.NumberFormat('en-US', { style: 'currency', currency: trip.currency || 'USD' }).format(trip.budget)}</p>
                                 </div>
-                                <div className="mt-4 pt-4 border-t border-vintage-brass/30 flex flex-wrap gap-1">
+                                <div className="mt-auto pt-4 border-t border-vintage-brass/30 flex flex-wrap gap-1">
                                     {trip.interests?.map(i => (
                                         <span key={i} className="text-xs bg-vintage-brass/20 text-vintage-leather px-2 py-1 rounded font-mono">
                                             {i}

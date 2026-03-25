@@ -29,14 +29,22 @@ class UniversalFallbackModel:
             default_headers={"HTTP-Referer": "https://travelsphere.app", "X-Title": "TravelSphere"}
         )
     
-    async def generate_content_async(self, prompt: str):
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        class ResponseStub:
-            text = response.choices[0].message.content
-        return ResponseStub()
+    async def generate_content_async(self, prompt: str, json_mode: bool = False):
+        try:
+            kwargs = {}
+            if json_mode:
+                kwargs["response_format"] = {"type": "json_object"}
+            
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                **kwargs
+            )
+            class ResponseStub:
+                text = response.choices[0].message.content
+            return ResponseStub()
+        except Exception as e:
+            raise e
 
 def get_model(api_key: str = None):
     if not HAS_OPENAI:
@@ -166,7 +174,7 @@ async def generate_itinerary(destination: str, days: int, interests: list, budge
     )
 
     try:
-        response = await model.generate_content_async(prompt)
+        response = await model.generate_content_async(prompt, json_mode=True)
         data = json.loads(_clean_json_text(response.text))
         return data.get("itinerary", data) if isinstance(data, dict) else data
     except Exception as e:
@@ -227,7 +235,7 @@ async def generate_categorized_packing_list(destination: str, days: int, weather
         f"Each key must map to a JSON array of strings."
     )
     try:
-        response = await model.generate_content_async(prompt)
+        response = await model.generate_content_async(prompt, json_mode=True)
         text = response.text
         try:
             parsed = json.loads(_clean_json_text(text))
@@ -283,7 +291,7 @@ async def estimate_budget(destination: str, origin: str, days: int, currency: st
         f"Return ONLY a valid JSON object with a single key 'estimated_budget' containing a numeric value (no markdown)."
     )
     try:
-        response = await model.generate_content_async(prompt)
+        response = await model.generate_content_async(prompt, json_mode=True)
         data = json.loads(_clean_json_text(response.text))
         return float(data.get("estimated_budget", 1500.0))
     except Exception:

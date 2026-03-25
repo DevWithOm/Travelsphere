@@ -166,7 +166,7 @@ export default function Itinerary() {
                         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end p-2 gap-4">
                             <div>
                                 <span className="font-mono text-xs tracking-widest uppercase opacity-70 mb-1 block">Expedition Locale</span>
-                                <h1 className="text-4xl md:text-5xl font-serif font-bold hero-text-shimmer">{trip.destination}</h1>
+                                <h1 className="text-4xl md:text-5xl font-serif font-bold text-vintage-paper">{trip.destination}</h1>
                             </div>
                             <div className="flex gap-4 font-mono text-sm opacity-90 border-t md:border-t-0 md:border-l border-vintage-paper/20 pt-4 md:pt-0 md:pl-4 w-full md:w-auto">
                                 <div>
@@ -193,7 +193,7 @@ export default function Itinerary() {
 
                         <StaggeredList className="space-y-4" staggerMs={150} animation="slideRight">
                             {trip.itinerary && Array.isArray(trip.itinerary) && trip.itinerary.map((dayPlan, idx) => (
-                                <div key={idx} className="vintage-card flex flex-col sm:flex-row gap-6 p-6 group card-3d-hover timeline-card">
+                                <div key={idx} className="vintage-card flex flex-col sm:flex-row gap-6 p-6 group hover-glow timeline-card">
                                     {/* Animated timeline connector */}
 
                                     <div className="flex-shrink-0 flex sm:flex-col items-center sm:items-start justify-between sm:justify-start sm:w-28 pb-4 sm:pb-0 sm:pr-4">

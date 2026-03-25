@@ -18,7 +18,7 @@ export default function Budget() {
     const [linkCopied, setLinkCopied] = useState(false);
 
     const handleCopyLink = () => {
-        const paymentLink = `${window.location.origin}/pay/${tripId}?split=true`;
+        const paymentLink = `${window.location.origin}/budget?id=${tripId}&split=true`;
         navigator.clipboard.writeText(paymentLink);
         setLinkCopied(true);
         setTimeout(() => setLinkCopied(false), 2000);
@@ -159,17 +159,17 @@ export default function Budget() {
                         <Users className="w-6 h-6 text-vintage-sky mr-3" />
                         <div>
                             <p className="font-serif font-bold text-vintage-ink text-lg">Split Payment Active ({trip.travelers} Travelers)</p>
-                            <p className="text-sm font-mono text-vintage-sky">Costs are being divided equally among your expedition members.</p>
+                            <p className="text-sm font-mono text-vintage-ink/80">Costs are being divided equally among your expedition members.</p>
                         </div>
                     </div>
                     <div className="text-right flex flex-col items-end">
                         <p className="text-xs tracking-widest uppercase text-vintage-ink/70">Your Personal Share Required</p>
-                        <p className={`font-mono font-bold text-xl mb-2 ${isOverBudget ? 'text-red-600' : 'text-vintage-sky'}`}>
+                        <p className={`font-mono font-bold text-xl mb-2 ${isOverBudget ? 'text-red-600' : 'text-vintage-leather'}`}>
                             {currencyFormat.format(trip.budget / trip.travelers)}
                         </p>
                         <button 
                             onClick={handleCopyLink}
-                            className={`flex items-center text-[10px] uppercase font-bold tracking-widest px-3 py-1.5 rounded transition-all shadow-sm ${linkCopied ? 'bg-emerald-500 text-white' : 'bg-vintage-ink text-white hover:bg-vintage-leather hover:-translate-y-[1px]'}`}
+                            className={`flex items-center text-[10px] uppercase font-bold tracking-widest px-3 py-1.5 rounded transition-all shadow-sm ${linkCopied ? 'bg-emerald-500 text-white' : 'bg-vintage-ink text-vintage-paper hover:bg-vintage-leather hover:text-white'}`}
                         >
                             {linkCopied ? (
                                 <><Check className="w-3 h-3 mr-1.5" /> Link Copied</>

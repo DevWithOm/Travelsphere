@@ -10,7 +10,16 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const apiKey = import.meta.env.VITE_AI_API_KEY;
+  let apiKey = import.meta.env.VITE_AI_API_KEY;
+
+  if (config.url === '/plan-trip' || config.url === '/modify-itinerary') {
+    apiKey = import.meta.env.VITE_GROQ_API_KEY_PLAN || apiKey;
+  } else if (config.url === '/estimate-budget') {
+    apiKey = import.meta.env.VITE_GROQ_API_KEY_BUDGET || apiKey;
+  } else if (config.url && config.url.startsWith('/packing-list')) {
+    apiKey = import.meta.env.VITE_GROQ_API_KEY_PACKING || apiKey;
+  }
+
   if (apiKey) {
     config.headers['x-openrouter-api-key'] = apiKey;
   }
@@ -45,5 +54,9 @@ export const getRuleBasedRecommendations = (data) =>
 // ─── Packing List APIs ────────────────────────────────
 export const getAIPackingList = (destination, days, weather) =>
   api.get('/packing-list', { params: { destination, days, weather } });
+
+// ─── Itinerary Modification APIs ──────────────────────
+export const modifyItinerary = (data) =>
+  api.post('/modify-itinerary', data);
 
 export default api;

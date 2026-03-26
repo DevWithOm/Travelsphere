@@ -149,23 +149,43 @@ export default function Recommendations() {
                                             <h3 className="text-2xl font-bold font-serif text-white drop-shadow-md">{dest.name}</h3>
                                         </div>
                                     </div>
-                                    <div className="p-5 space-y-3">
-                                        <div className="space-y-1">
-                                            <span className="block text-[10px] uppercase font-bold tracking-[0.2em] text-vintage-leather/60">Famous For</span>
-                                            <p className="font-serif text-vintage-ink leading-relaxed italic">{dest.famous_for}</p>
+                                    <div className="p-5 space-y-4 flex-grow flex flex-col">
+                                        <div className="space-y-2 flex-grow">
+                                            <span className="block text-[11px] uppercase font-bold tracking-widest text-vintage-leather/80 border-b border-vintage-brass/20 pb-1 mb-2">Why Visit / Famous For</span>
+                                            <p className="font-serif text-vintage-ink leading-relaxed text-sm italic">
+                                                {dest.famous_for}
+                                            </p>
                                         </div>
-                                        <div className="pt-4 flex items-center justify-between border-t border-vintage-brass/20">
-                                            <span className="text-[10px] font-mono uppercase tracking-widest text-vintage-ink/40">
+                                        <div className="pt-3 flex flex-col gap-3 border-t border-vintage-brass/20">
+                                            <span className="text-[10px] font-mono uppercase tracking-widest text-vintage-ink/50">
                                                 {recommendations.input_interest} · {recommendations.recommendation_category}
                                             </span>
-                                            <a 
-                                                href={`https://www.google.com/search?q=${encodeURIComponent(dest.name + ' travel guide ' + recommendations.input_interest)}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-xs font-bold text-vintage-leather hover:text-vintage-accent transition-colors flex items-center gap-1 group/btn"
-                                            >
-                                                Explore Guide <Search className="w-3 h-3 group-hover/btn:scale-110" />
-                                            </a>
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <a 
+                                                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest.name)}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-2.5 py-1.5 bg-vintage-paper/80 rounded border border-vintage-brass/30 text-[11px] font-bold text-vintage-leather hover:bg-vintage-leather hover:text-white transition-all flex items-center gap-1"
+                                                >
+                                                    <MapPin className="w-3 h-3" /> Map & Routes
+                                                </a>
+                                                <a 
+                                                    href={`https://www.google.com/search?q=${encodeURIComponent(dest.name + ' travel destination tourist reviews')}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-2.5 py-1.5 bg-vintage-paper/80 rounded border border-vintage-brass/30 text-[11px] font-bold text-vintage-leather hover:bg-vintage-leather hover:text-white transition-all flex items-center gap-1"
+                                                >
+                                                    <span className="text-xs">⭐</span> Reviews
+                                                </a>
+                                                <a 
+                                                    href={`https://www.google.com/search?q=${encodeURIComponent(dest.name + ' travel guide ' + recommendations.input_interest)}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-2.5 py-1.5 bg-vintage-leather text-white rounded border border-transparent text-[11px] font-bold hover:bg-vintage-ink transition-all flex items-center gap-1 shadow-sm ml-auto"
+                                                >
+                                                    <Search className="w-3 h-3" /> Guide
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

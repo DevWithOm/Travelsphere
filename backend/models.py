@@ -14,6 +14,7 @@ class TripRequest(BaseModel):
     interests: List[str]
     travelers: int = 1
     split_payment: bool = False
+    custom_notes: Optional[str] = ""
 
 class Expense(BaseModel):
     category: str
@@ -61,6 +62,15 @@ class BudgetEstimateRequest(BaseModel):
     origin: str
     days: int
     currency: str = "USD"
+
+class ItineraryModifyRequest(BaseModel):
+    destination: str
+    days: int
+    currency: str = "USD"
+    budget: float = 0
+    interests: List[str] = []
+    current_itinerary: List[Any]
+    user_message: str
 
 # --- MongoDB Schemas ---
 

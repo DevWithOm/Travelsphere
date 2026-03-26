@@ -23,7 +23,7 @@ export default function Layout() {
                     <div className="flex justify-between h-20 items-center">
 
                         <div className="flex items-center space-x-3">
-                            <div className="p-2 border border-vintage-leather/30 rounded-full bg-white/70 shadow-sm logo-spin-hover">
+                            <div className="p-2 border border-vintage-leather/30 rounded-full bg-vintage-paper/70 shadow-sm logo-spin-hover">
                                 <Plane className="w-6 h-6 text-vintage-accent transform -rotate-45" />
                             </div>
                             <div>

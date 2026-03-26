@@ -4,7 +4,7 @@ from bson import ObjectId
 import uuid
 
 from database import trip_collection, trip_helper
-from models import TripRequest, ExpenseRequest, PackingListRequest, DestinationRequest, RuleBasedDestinationRequest, BudgetEstimateRequest
+from models import TripRequest, ExpenseRequest, PackingListRequest, DestinationRequest, RuleBasedDestinationRequest, BudgetEstimateRequest, ItineraryModifyRequest
 import services
 import rule_based_recommendation
 
@@ -43,6 +43,7 @@ async def plan_trip(request: TripRequest, x_openrouter_api_key: str = Header(Non
         interests=request.interests,
         budget=request.budget,
         currency=request.currency,
+        custom_notes=request.custom_notes or "",
         api_key=x_openrouter_api_key
     )
 
@@ -60,6 +61,7 @@ async def plan_trip(request: TripRequest, x_openrouter_api_key: str = Header(Non
         "interests": request.interests,
         "travelers": request.travelers,
         "split_payment": request.split_payment,
+        "custom_notes": request.custom_notes or "",
         "itinerary": itinerary,
         "packing_list": packing_list,
         "expenses": []
@@ -202,3 +204,16 @@ async def get_packing_list(destination: str, days: int, weather: str = "", x_ope
     items = await services.generate_categorized_packing_list(destination, days, weather, api_key=x_openrouter_api_key)
     return items
 
+@app.post("/modify-itinerary")
+async def modify_itinerary_route(request: ItineraryModifyRequest, x_openrouter_api_key: str = Header(None)):
+    result = await services.modify_itinerary(
+        destination=request.destination,
+        days=request.days,
+        current_itinerary=request.current_itinerary,
+        user_message=request.user_message,
+        budget=request.budget,
+        currency=request.currency,
+        interests=request.interests,
+        api_key=x_openrouter_api_key
+    )
+    return result

@@ -15,7 +15,8 @@ export default function Home() {
         days: 7,
         interests: [],
         travelers: 1,
-        split_payment: false
+        split_payment: false,
+        custom_notes: ''
     });
     const [userOrigin, setUserOrigin] = useState('');
     const [estimatingBudget, setEstimatingBudget] = useState(false);
@@ -228,7 +229,7 @@ export default function Home() {
                                                 onClick={() => handleInterestToggle(interest)}
                                                 className={`px-4 py-2 rounded border transition-all duration-300 font-serif text-sm interest-chip ${formData.interests.includes(interest)
                                                         ? 'bg-vintage-sky text-white border-vintage-sky shadow-inner scale-105'
-                                                        : 'bg-white/40 border-vintage-brass/30 text-vintage-ink/70 hover:bg-white/70 hover:border-vintage-leather/40 hover:scale-105'
+                                                        : 'bg-vintage-paper/50 border-vintage-brass/30 text-vintage-ink/70 hover:bg-vintage-paper/80 hover:border-vintage-leather/40 hover:scale-105'
                                                     }`}
                                             >
                                                 {interest}
@@ -240,7 +241,7 @@ export default function Home() {
 
                             {/* Group & Payment Split Section */}
                             <AnimatedSection animation="slideRight" delay={400}>
-                                <div className="p-4 bg-white/50 border border-vintage-brass/30 rounded-lg space-y-4 backdrop-blur-sm">
+                                <div className="p-4 bg-vintage-paper/60 border border-vintage-brass/30 rounded-lg space-y-4 backdrop-blur-sm">
                                     <h3 className="font-serif font-bold text-vintage-ink flex items-center border-b border-vintage-brass/20 pb-2">
                                         <Users className="w-5 h-5 mr-2 text-vintage-leather" /> Group Travel & Payments
                                     </h3>
@@ -269,7 +270,7 @@ export default function Home() {
                                                 className={`w-full h-10 flex items-center justify-center font-mono text-sm border-2 rounded transition-all ${
                                                     formData.split_payment 
                                                     ? 'bg-vintage-sky/10 border-vintage-sky text-vintage-sky shadow-inner' 
-                                                    : 'bg-white/60 border-vintage-brass/40 text-vintage-ink/70 hover:border-vintage-leather hover:text-vintage-leather'
+                                                    : 'bg-vintage-paper/70 border-vintage-brass/40 text-vintage-ink/70 hover:border-vintage-leather hover:text-vintage-leather'
                                                 }`}
                                             >
                                                 <SplitSquareHorizontal className="w-4 h-4 mr-2" />
@@ -283,6 +284,26 @@ export default function Home() {
                                             <strong>Insight:</strong> Everyone pays their own share. Splitting costs reduces arguments and simplifies tracking. The estimated cost per person will be {new Intl.NumberFormat('en-US', { style: 'currency', currency: formData.currency }).format(formData.budget / formData.travelers)}.
                                         </div>
                                     )}
+                                </div>
+                            </AnimatedSection>
+
+                            {/* Custom Requirements / Special Notes */}
+                            <AnimatedSection animation="fadeUp" delay={500}>
+                                <div className="space-y-2 input-focus-glow">
+                                    <label className="block text-sm font-bold tracking-widest text-vintage-leather/80 uppercase flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
+                                        Special Requirements
+                                    </label>
+                                    <textarea
+                                        value={formData.custom_notes}
+                                        onChange={e => setFormData({ ...formData, custom_notes: e.target.value })}
+                                        placeholder="e.g. Honeymoon trip, solo adventure, prefer staying at Marriott, vegetarian food only, need wheelchair-accessible venues..."
+                                        rows={3}
+                                        className="vintage-input resize-none text-sm leading-relaxed"
+                                    />
+                                    <p className="text-[10px] font-mono text-vintage-ink/50 tracking-wide">
+                                        The AI will tailor your itinerary around these specific preferences.
+                                    </p>
                                 </div>
                             </AnimatedSection>
 

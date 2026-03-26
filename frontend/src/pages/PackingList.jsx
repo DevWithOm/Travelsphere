@@ -26,7 +26,7 @@ export default function PackingList() {
     };
 
     const CategoryCard = ({ title, items, icon: Icon, colorClass }) => (
-        <div className="vintage-card bg-white/60 card-3d-hover hover-glow">
+        <div className="vintage-card bg-vintage-paper/60 card-3d-hover hover-glow">
             <h3 className={`text-lg font-serif font-bold mb-4 flex items-center border-b pb-2 ${colorClass}`}>
                 <Icon className="w-5 h-5 mr-2" /> {title}
             </h3>

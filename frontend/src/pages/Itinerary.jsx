@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Map, MapPin, Clock, AlertCircle, Star, Navigation, ExternalLink, Route } from 'lucide-react';
 import { getTrip } from '../api';
 import { AnimatedSection, StaggeredList, PageTransition, Shimmer } from '../components/AnimatedUI';
+import ItineraryChatbot from '../components/ItineraryChatbot';
 
 export default function Itinerary() {
     const [searchParams] = useSearchParams();
@@ -29,6 +30,10 @@ export default function Itinerary() {
                 setLoading(false);
             });
     }, [tripId]);
+
+    const handleItineraryUpdate = (updatedItinerary) => {
+        setTrip(prev => ({ ...prev, itinerary: updatedItinerary }));
+    };
 
     if (loading) {
         return (
@@ -95,11 +100,11 @@ export default function Itinerary() {
                     <div className="w-1.5 h-1.5 rounded-full bg-vintage-brass/50"></div>
                 </div>
 
-                <div className="w-full bg-white/40 rounded-lg p-4 border border-vintage-brass/10 hover:border-vintage-leather/30 transition-colors shadow-sm relative group">
+                <div className="w-full bg-vintage-paper/50 rounded-lg p-4 border border-vintage-brass/10 hover:border-vintage-leather/30 transition-colors shadow-sm relative group">
                     <div className="flex justify-between items-start mb-2">
                         <p className="font-serif text-vintage-ink font-bold text-lg">{label}</p>
                         {time && (
-                            <div className="flex items-center text-vintage-ink/70 font-mono text-xs bg-white/60 px-2 py-1 rounded shadow-sm">
+                            <div className="flex items-center text-vintage-ink/70 font-mono text-xs bg-vintage-paper/60 px-2 py-1 rounded shadow-sm">
                                 <Clock className="w-3 h-3 mr-1" /> {time}
                             </div>
                         )}
@@ -126,14 +131,14 @@ export default function Itinerary() {
                             {/* Dynamic Details */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
                                 {reviews && reviews !== 'N/A' && (
-                                    <div className="flex items-start text-xs font-mono text-amber-700/80 bg-amber-50/50 p-2 rounded">
+                                    <div className="flex items-start text-xs font-mono text-vintage-accent bg-vintage-accent/10 p-2 rounded">
                                         <Star className="w-3.5 h-3.5 mr-1.5 mt-0.5 flex-shrink-0" />
                                         <span>{reviews}</span>
                                     </div>
                                 )}
                                 
                                 {(distance || travelRec) && (distance !== 'N/A' || travelRec !== 'N/A') && (
-                                    <div className="flex flex-col text-xs font-mono text-emerald-700/80 bg-emerald-50/50 p-2 rounded">
+                                    <div className="flex flex-col text-xs font-mono text-vintage-sky bg-vintage-sky/10 p-2 rounded">
                                         {distance && distance !== 'N/A' && (
                                             <span className="flex items-center mb-1">
                                                 <Route className="w-3.5 h-3.5 mr-1.5" /> Next: {distance}
@@ -185,45 +190,43 @@ export default function Itinerary() {
                 </AnimatedSection>
 
                 {/* Itinerary Timeline */}
-                <AnimatedSection animation="fadeUp" delay={200}>
-                    <div className="space-y-6">
-                        <h2 className="text-2xl font-serif font-bold text-vintage-ink border-b-2 border-vintage-brass/30 pb-2 inline-flex items-center">
-                            <Map className="mr-2 w-6 h-6 text-vintage-leather" /> Detailed Chronology
-                        </h2>
+                <div className="space-y-6 pt-4">
+                    <h2 className="text-2xl font-serif font-bold text-vintage-ink border-b-2 border-vintage-brass/30 pb-2 inline-flex items-center">
+                        <Map className="mr-2 w-6 h-6 text-vintage-leather" /> Detailed Chronology
+                    </h2>
 
-                        <StaggeredList className="space-y-4" staggerMs={150} animation="slideRight">
-                            {trip.itinerary && Array.isArray(trip.itinerary) && trip.itinerary.map((dayPlan, idx) => (
-                                <div key={idx} className="vintage-card flex flex-col sm:flex-row gap-6 p-6 group hover-glow timeline-card">
-                                    {/* Animated timeline connector */}
-
-                                    <div className="flex-shrink-0 flex sm:flex-col items-center sm:items-start justify-between sm:justify-start sm:w-28 pb-4 sm:pb-0 sm:pr-4">
-                                        <div className="bg-vintage-ink text-vintage-paper font-serif font-bold w-16 h-12 flex items-center justify-center rounded-sm shadow-sm opacity-90 group-hover:bg-vintage-leather group-hover:scale-110 transition-all duration-300 text-sm text-center">
-                                            {dayPlan.day}
-                                        </div>
-                                        <div className="flex items-center text-vintage-ink/50 sm:mt-4 font-mono text-xs">
-                                            <Clock className="w-4 h-4 mr-1" /> Agenda
-                                        </div>
+                    <StaggeredList className="space-y-4" staggerMs={150} animation="slideRight">
+                        {trip.itinerary && Array.isArray(trip.itinerary) && trip.itinerary.map((dayPlan, idx) => (
+                            <div key={idx} className="vintage-card flex flex-col sm:flex-row gap-6 p-6 group hover-glow timeline-card">
+                                {/* Animated timeline connector */}
+                                <div className="flex-shrink-0 flex sm:flex-col items-center sm:items-start justify-between sm:justify-start sm:w-28 pb-4 sm:pb-0 sm:pr-4">
+                                    <div className="bg-vintage-ink text-vintage-paper font-serif font-bold w-16 h-12 flex items-center justify-center rounded-sm shadow-sm opacity-90 group-hover:bg-vintage-leather group-hover:scale-110 transition-all duration-300 text-sm text-center">
+                                        {dayPlan.day}
                                     </div>
-
-                                    <div className="flex-grow space-y-4 pt-1 sm:pt-0 pb-2">
-                                        {dayPlan.activities && Array.isArray(dayPlan.activities) ? (
-                                            dayPlan.activities.map((act, i) => {
-                                                return renderActivity(act, act.label || `Activity ${i + 1}`, i);
-                                            })
-                                        ) : (
-                                            <>
-                                                {renderActivity(dayPlan.morning_activity, 'Morning', 0)}
-                                                {renderActivity(dayPlan.afternoon_activity, 'Afternoon', 1)}
-                                                {renderActivity(dayPlan.evening_activity, 'Evening', 2)}
-                                            </>
-                                        )}
+                                    <div className="flex items-center text-vintage-ink/50 sm:mt-4 font-mono text-xs">
+                                        <Clock className="w-4 h-4 mr-1" /> Agenda
                                     </div>
                                 </div>
-                            ))}
-                        </StaggeredList>
-                    </div>
-                </AnimatedSection>
 
+                                <div className="flex-grow space-y-4 pt-1 sm:pt-0 pb-2">
+                                    {dayPlan.activities && Array.isArray(dayPlan.activities) ? (
+                                        dayPlan.activities.map((act, i) => {
+                                            return renderActivity(act, act.label || `Activity ${i + 1}`, i);
+                                        })
+                                    ) : (
+                                        <>
+                                            {renderActivity(dayPlan.morning_activity, 'Morning', 0)}
+                                            {renderActivity(dayPlan.afternoon_activity, 'Afternoon', 1)}
+                                            {renderActivity(dayPlan.evening_activity, 'Evening', 2)}
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </StaggeredList>
+                </div>
+
+                {trip && <ItineraryChatbot trip={trip} onItineraryUpdate={handleItineraryUpdate} />}
             </div>
         </PageTransition>
     );

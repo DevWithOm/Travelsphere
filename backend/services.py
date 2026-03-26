@@ -38,6 +38,7 @@ class UniversalFallbackModel:
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
+                max_tokens=8192,
                 **kwargs
             )
             class ResponseStub:
@@ -87,7 +88,7 @@ def _clean_json_text(text: str) -> str:
         return text[start:end+1]
     return text
 
-async def generate_itinerary(destination: str, days: int, interests: list, budget: float, currency: str = "USD", api_key: str = None) -> list:
+async def generate_itinerary(destination: str, days: int, interests: list, budget: float, currency: str = "USD", custom_notes: str = "", api_key: str = None) -> list:
     """Generate a daily itinerary using Gemini API."""
     model = get_model(api_key)
     if not model:
@@ -154,45 +155,78 @@ async def generate_itinerary(destination: str, days: int, interests: list, budge
             for i in range(1, days + 1)
         ]
 
-    prompt = (
-        f"Create a very detailed, step-by-step {days}-day timetable travel itinerary for {destination} with a budget of {budget} {currency}. "
-        f"Interests include: {', '.join(interests)}. "
-        f"Provide a COMPREHENSIVE daily roadmap for the whole day. You MUST include at least 6 to 8 detailed activities per day (e.g. Breakfast, Morning Activity, Lunch, Afternoon Activity, Dinner, Evening Leisure). "
-        f"Expand the itinerary to include step-by-step guidance on exactly where to go, what to visit, and what to do, with precise times and specific location names. "
-        f"Return ONLY a valid JSON object (no markdown, no code fences) containing an 'itinerary' array. "
-        f"Each item in the array must have these keys: "
-        f"'day' (string, e.g., 'Day 1'), "
-        f"'activities' (an array of activity objects). "
-        f"Each activity object must have these string keys: "
-        f"'time_slot' (e.g. '08:00 AM - 10:00 AM'), "
-        f"'location' (specific place name), "
-        f"'description' (detailed step-by-step instruction), "
-        f"'label' (e.g. 'Breakfast', 'Morning Tour'), "
-        f"'reviews_summary' (a compelling short summary of reviews/ratings, e.g., '4.8 stars - Famous for its vintage ambiance.'), "
-        f"'distance_to_next' (distance to next location, e.g. '1.2 km' or 'N/A' if last activity), and "
-        f"'travel_recommendation' (e.g. 'Take a 15-minute scenic walk' or 'Use the Metro')."
-    )
+    # --- Chunked generation: split long trips into batches of CHUNK_SIZE days ---
+    CHUNK_SIZE = 3
+    all_days = []
 
-    try:
-        response = await model.generate_content_async(prompt, json_mode=True)
-        data = json.loads(_clean_json_text(response.text))
-        return data.get("itinerary", data) if isinstance(data, dict) else data
-    except Exception as e:
-        print(f"Gemini Error: {e}")
-        return [{
-            "day": "Day 1",
-            "activities": [
-                {
-                    "label": "Error",
+    # Robust extractor: traverse dicts to find the first list
+    def extract_list(node):
+        if isinstance(node, list): return node
+        if isinstance(node, dict):
+            for k, v in node.items():
+                res = extract_list(v)
+                if res: return res
+        return None
+
+    for chunk_start in range(1, days + 1, CHUNK_SIZE):
+        chunk_end = min(chunk_start + CHUNK_SIZE - 1, days)
+        chunk_count = chunk_end - chunk_start + 1
+
+        prompt = (
+            f"Create a detailed travel itinerary for Day {chunk_start} to Day {chunk_end} (out of a total {days}-day trip) "
+            f"to {destination} with a total budget of {budget} {currency}. "
+            f"Interests include: {', '.join(interests)}. "
+            f"{('IMPORTANT - The traveler has these specific requirements that you MUST incorporate: ' + custom_notes + '. ') if custom_notes.strip() else ''}"
+            f"Provide a daily roadmap. Include 5 to 6 activities per day (e.g. Breakfast, Morning Activity, Lunch, Afternoon Activity, Dinner, Evening Leisure). "
+            f"Use specific place names and precise times. "
+            f"Return ONLY a valid JSON object (no markdown, no code fences) containing an 'itinerary' array with exactly {chunk_count} day(s). "
+            f"Each item must have: "
+            f"'day' (string, e.g., 'Day {chunk_start}'), "
+            f"'activities' (array of activity objects). "
+            f"Each activity object must have these string keys: "
+            f"'time_slot', 'location', 'description', 'label', "
+            f"'reviews_summary' (e.g., '4.8 stars - Famous for its vintage ambiance.'), "
+            f"'distance_to_next' (e.g. '1.2 km' or 'N/A'), and "
+            f"'travel_recommendation' (e.g. 'Take a 15-minute scenic walk')."
+        )
+
+        try:
+            response = await model.generate_content_async(prompt, json_mode=True)
+            data = json.loads(_clean_json_text(response.text))
+            chunk_list = extract_list(data)
+            if chunk_list and len(chunk_list) > 0 and isinstance(chunk_list[0], dict):
+                all_days.extend(chunk_list)
+            elif isinstance(data, list):
+                all_days.extend(data)
+            else:
+                all_days.extend(data.get("itinerary", []))
+        except Exception as e:
+            print(f"Chunk generation error (Days {chunk_start}-{chunk_end}): {e}")
+            all_days.append({
+                "day": f"Day {chunk_start}",
+                "activities": [{
+                    "label": "Generation Error",
                     "time_slot": "",
                     "location": "",
-                    "description": "AI generation failed. Please check your API key.",
+                    "description": f"AI failed to generate Days {chunk_start}-{chunk_end}. Try again or reduce trip length.",
                     "reviews_summary": "N/A",
                     "distance_to_next": "N/A",
                     "travel_recommendation": "N/A"
-                }
-            ]
+                }]
+            })
+
+    return all_days if all_days else [{
+        "day": "Day 1",
+        "activities": [{
+            "label": "Error",
+            "time_slot": "",
+            "location": "",
+            "description": "AI generation failed. Please check your API key.",
+            "reviews_summary": "N/A",
+            "distance_to_next": "N/A",
+            "travel_recommendation": "N/A"
         }]
+    }]
 
 
 async def generate_packing_list(destination: str, days: int, api_key: str = None) -> list:
@@ -296,3 +330,62 @@ async def estimate_budget(destination: str, origin: str, days: int, currency: st
         return float(data.get("estimated_budget", 1500.0))
     except Exception:
         return 1500.0
+
+
+async def modify_itinerary(destination: str, days: int, current_itinerary: list, user_message: str, budget: float = 0, currency: str = "USD", interests: list = None, api_key: str = None) -> dict:
+    """Modify an existing itinerary based on user's chat request."""
+    model = get_model(api_key)
+    if not model:
+        return {
+            "reply": "I'm sorry, I cannot process modifications without an AI connection. Please check your API key.",
+            "updated_itinerary": current_itinerary
+        }
+
+    # Serialize current itinerary to compact JSON for the prompt
+    itinerary_json = json.dumps(current_itinerary, indent=None, ensure_ascii=False)
+
+    # Truncate if itinerary is extremely large to stay within context limits
+    if len(itinerary_json) > 12000:
+        itinerary_json = itinerary_json[:12000] + "...]"
+
+    prompt = (
+        f"You are a travel assistant helping to modify an existing {days}-day travel itinerary for {destination} "
+        f"(budget: {budget} {currency}). "
+        f"{'Interests: ' + ', '.join(interests) + '. ' if interests else ''}"
+        f"\n\nHere is the CURRENT itinerary in JSON:\n{itinerary_json}\n\n"
+        f"The user wants this change: \"{user_message}\"\n\n"
+        f"Please apply the user's requested change to the itinerary. "
+        f"Keep everything else the same unless it conflicts with the change. "
+        f"Return ONLY a valid JSON object (no markdown, no code fences) with exactly two keys:\n"
+        f"1. 'reply' - a short, friendly confirmation message describing what you changed (1-2 sentences).\n"
+        f"2. 'updated_itinerary' - the full modified itinerary array in the exact same format as the input.\n"
+        f"Each day object must have 'day' and 'activities'. "
+        f"Each activity must have: 'time_slot', 'location', 'description', 'label', 'reviews_summary', 'distance_to_next', 'travel_recommendation'."
+    )
+
+    try:
+        response = await model.generate_content_async(prompt, json_mode=True)
+        data = json.loads(_clean_json_text(response.text))
+
+        reply = data.get("reply", "I've updated your itinerary as requested!")
+        updated = data.get("updated_itinerary", current_itinerary)
+
+        # Validate that updated is actually a list
+        if not isinstance(updated, list):
+            # Try to extract a list from nested structure
+            def extract_list(node):
+                if isinstance(node, list): return node
+                if isinstance(node, dict):
+                    for k, v in node.items():
+                        res = extract_list(v)
+                        if res: return res
+                return None
+            updated = extract_list(data) or current_itinerary
+
+        return {"reply": reply, "updated_itinerary": updated}
+    except Exception as e:
+        print(f"Modify itinerary error: {e}")
+        return {
+            "reply": f"I had trouble processing that change. Could you try phrasing it differently?",
+            "updated_itinerary": current_itinerary
+        }

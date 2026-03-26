@@ -136,7 +136,7 @@ export default function Budget() {
         if (active && payload && payload.length) {
             const data = payload[0].payload;
             return (
-                <div className="bg-white/90 border border-vintage-brass/30 p-3 rounded shadow-lg backdrop-blur-sm">
+                <div className="bg-vintage-paper/90 border border-vintage-brass/30 p-3 rounded shadow-lg backdrop-blur-sm">
                     <p className="font-serif font-bold text-vintage-ink mb-1">{data.name}</p>
                     <p className="font-mono text-vintage-leather">{currencyFormat.format(data.value)}</p>
                 </div>
@@ -203,12 +203,12 @@ export default function Budget() {
                     </div>
                 </div>
 
-                <div className={`vintage-card flex flex-col justify-center text-center card-3d-hover hover-glow ${isOverBudget ? 'bg-red-50 border-red-200 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'bg-emerald-50 border-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.05)]'}`}>
+                <div className={`vintage-card flex flex-col justify-center text-center card-3d-hover hover-glow ${isOverBudget ? 'bg-vintage-accent/10 border-vintage-accent/30 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'bg-vintage-sky/10 border-vintage-sky/20 shadow-[0_0_15px_rgba(16,185,129,0.05)]'}`}>
                     <span className="font-mono text-xs tracking-widest uppercase opacity-70 mb-1">Remaining Budget</span>
-                    <span className={`text-4xl font-serif font-bold tracking-tight ${isOverBudget ? 'text-red-700' : 'text-emerald-700'}`}>
+                    <span className={`text-4xl font-serif font-bold tracking-tight ${isOverBudget ? 'text-vintage-accent' : 'text-vintage-sky'}`}>
                         <AnimatedCounter value={remaining} prefix={trip.currency === 'INR' ? '₹' : '$'} />
                     </span>
-                    <div className={`mt-2 text-xs font-mono flex flex-col ${isOverBudget ? 'text-red-600/70' : 'text-emerald-700/70'}`}>
+                    <div className={`mt-2 text-xs font-mono flex flex-col ${isOverBudget ? 'text-vintage-accent/70' : 'text-vintage-sky/70'}`}>
                        <span>{isOverBudget ? 'Exceeding Limits' : 'Available Funds'}</span>
                        {trip.split_payment && trip.travelers > 1 && (
                            <span className="mt-0.5 font-bold">({currencyFormat.format(remaining / trip.travelers)} per person)</span>
@@ -221,7 +221,7 @@ export default function Budget() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Ledger entry form */}
                 <div className="lg:col-span-1 border-r border-vintage-brass/20 pr-0 lg:pr-8">
-                    <div className="vintage-card sticky top-24 bg-white/60 backdrop-blur-md">
+                    <div className="vintage-card sticky top-24 bg-vintage-paper/70 backdrop-blur-md">
                         <h3 className="text-xl font-serif font-bold text-vintage-ink mb-6 pb-2 border-b border-vintage-brass/30 flex items-center">
                             <Plus className="mr-2 w-5 h-5 text-vintage-leather" /> Log Expenditure
                         </h3>
@@ -285,7 +285,7 @@ export default function Budget() {
                 <div className="lg:col-span-2 space-y-8">
                     
                     {/* Activity Cost Breakdown Chart */}
-                    <div className="vintage-card bg-gradient-to-br from-white/80 to-vintage-brass/5">
+                    <div className="vintage-card bg-gradient-to-br from-vintage-paper/80 to-vintage-brass/5">
                         <h3 className="text-xl font-serif font-bold text-vintage-ink mb-6 pb-2 border-b border-vintage-brass/30 flex items-center">
                             <PieChartIcon className="mr-2 w-5 h-5 text-vintage-leather" /> Activity Cost Breakdown
                         </h3>
@@ -347,7 +347,7 @@ export default function Budget() {
                             <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                                 {/* Reversed to show newest first if we assume they are appended */}
                                 {[...trip.expenses].reverse().map((exp, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-4 bg-white/60 rounded-lg border border-vintage-brass/20 shadow-sm transition-all hover:bg-white hover:shadow-md hover:-translate-y-0.5 group">
+                                    <div key={idx} className="flex items-center justify-between p-4 bg-vintage-paper/60 rounded-lg border border-vintage-brass/20 shadow-sm transition-all hover:bg-vintage-paper hover:shadow-md hover:-translate-y-0.5 group">
                                         <div className="flex items-center gap-4">
                                             <div 
                                                 className="w-12 h-12 rounded-full flex items-center justify-center text-white shadow-sm"
